@@ -9,14 +9,19 @@ namespace hsql {
      */
     struct ColumnDefinition {
         enum DataType {
-            TEXT,
             INT,
-            DOUBLE
+            INTEGER,
+            TINYINT,
+            CHAR,
+            VARCHAR,
+            PRIMARY
         };
 
-        ColumnDefinition(char* name, DataType type) :
+        ColumnDefinition(char* name, DataType type, bool notnull, int64_t len=0) :
             name(name),
-            type(type) {}
+            type(type),
+            notnull(notnull),
+            len(len) {}
 
         virtual ~ColumnDefinition() {
             delete name;
@@ -24,6 +29,8 @@ namespace hsql {
 
         char* name;
         DataType type;
+        bool notnull;
+        int64_t len;
     };
 
     /**
@@ -33,7 +40,8 @@ namespace hsql {
     struct CreateStatement : SQLStatement {
         enum CreateType {
             kTable,
-            kTableFromTbl // Hyrise file format
+            kTableFromTbl, // Hyrise file format
+            kDatabase
         };
 
         CreateStatement(CreateType type) :

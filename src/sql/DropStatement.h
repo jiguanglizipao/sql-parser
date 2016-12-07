@@ -14,7 +14,8 @@ namespace hsql {
             kSchema,
             kIndex,
             kView,
-            kPreparedStatement
+            kPreparedStatement,
+            kDatabase
         };
 
         DropStatement(EntityType type) :

@@ -196,11 +196,16 @@ extern int hsql_debug;
     SQL_ON = 373,
     SQL_OR = 374,
     SQL_TO = 375,
-    SQL_EQUALS = 376,
-    SQL_LESS = 377,
-    SQL_GREATER = 378,
-    SQL_NOTNULL = 379,
-    SQL_UMINUS = 380
+    SQL_DATABASE = 376,
+    SQL_DATABASES = 377,
+    SQL_CHAR = 378,
+    SQL_VARCHAR = 379,
+    SQL_TINYINT = 380,
+    SQL_EQUALS = 381,
+    SQL_LESS = 382,
+    SQL_GREATER = 383,
+    SQL_NOTNULL = 384,
+    SQL_UMINUS = 385
   };
 #endif
 
@@ -225,6 +230,8 @@ union HSQL_STYPE
 	hsql::DeleteStatement* 	delete_stmt;
 	hsql::UpdateStatement* 	update_stmt;
 	hsql::DropStatement*   	drop_stmt;
+	hsql::ShowStatement*   	show_stmt;
+	hsql::DescStatement*   	desc_stmt;
 	hsql::PrepareStatement* prep_stmt;
 	hsql::ExecuteStatement* exec_stmt;
 
@@ -245,7 +252,7 @@ union HSQL_STYPE
 	std::vector<hsql::UpdateClause*>* update_vec;
 	std::vector<hsql::Expr*>* expr_vec;
 
-#line 249 "bison_parser.h" /* yacc.c:1909  */
+#line 256 "bison_parser.h" /* yacc.c:1909  */
 };
 # define HSQL_STYPE_IS_TRIVIAL 1
 # define HSQL_STYPE_IS_DECLARED 1

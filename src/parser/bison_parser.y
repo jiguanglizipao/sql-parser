@@ -113,6 +113,8 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 	hsql::DeleteStatement* 	delete_stmt;
 	hsql::UpdateStatement* 	update_stmt;
 	hsql::DropStatement*   	drop_stmt;
+	hsql::ShowStatement*   	show_stmt;
+	hsql::DescStatement*   	desc_stmt;
 	hsql::PrepareStatement* prep_stmt;
 	hsql::ExecuteStatement* exec_stmt;
 
@@ -159,6 +161,7 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 %token LOAD NULL PART PLAN SHOW TEXT TIME VIEW WITH ADD ALL
 %token AND ASC CSV FOR INT KEY NOT OFF SET TBL TOP AS BY IF
 %token IN IS OF ON OR TO
+%token DATABASE DATABASES CHAR VARCHAR TINYINT
 
 
 /*********************************
@@ -175,9 +178,11 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 %type <delete_stmt> delete_statement truncate_statement
 %type <update_stmt> update_statement
 %type <drop_stmt>	drop_statement
-%type <sval> 		table_name opt_alias alias file_path
-%type <bval> 		opt_not_exists opt_distinct
-%type <uval>		import_file_type opt_join_type column_type
+%type <show_stmt>	show_statement
+%type <desc_stmt>	desc_statement
+%type <sval> 		table_name opt_alias alias file_path database_name
+%type <bval> 		opt_not_exists opt_distinct opt_not_null
+%type <uval>		import_file_type opt_join_type column_type column_vartype column_primary
 %type <table> 		from_clause table_ref table_ref_atomic table_ref_name
 %type <table>		join_clause join_table table_ref_name_no_alias
 %type <expr> 		expr scalar_expr unary_expr binary_expr function_expr star_expr expr_alias placeholder_expr
@@ -256,6 +261,8 @@ preparable_statement:
 	|	truncate_statement { $$ = $1; }
 	|	update_statement { $$ = $1; }
 	|	drop_statement { $$ = $1; }
+	|	show_statement { $$ = $1; }
+	|	desc_statement { $$ = $1; }
 	|	execute_statement { $$ = $1; }
 	;
 
@@ -327,6 +334,11 @@ create_statement:
 			$$->tableName = $4;
 			$$->columns = $6;
 		}
+	|	CREATE DATABASE opt_not_exists database_name {
+			$$ = new CreateStatement(CreateStatement::kDatabase);
+			$$->ifNotExists = $3;
+			$$->tableName = $4;
+		}
 	;
 
 opt_not_exists:
@@ -340,17 +352,36 @@ column_def_commalist:
 	;
 
 column_def:
-		IDENTIFIER column_type {
-			$$ = new ColumnDefinition($1, (ColumnDefinition::DataType) $2);
+		IDENTIFIER column_type opt_not_null {
+			$$ = new ColumnDefinition($1, (ColumnDefinition::DataType) $2, $3);
+		}
+    |   IDENTIFIER column_vartype '(' int_literal ')' opt_not_null {
+			$$ = new ColumnDefinition($1, (ColumnDefinition::DataType) $2, $6, $4->ival);
+		}
+    |   column_primary '(' IDENTIFIER ')' {
+			$$ = new ColumnDefinition($3, (ColumnDefinition::DataType) $1, false);
 		}
 	;
 
 
 column_type:
+		INTEGER { $$ = ColumnDefinition::INTEGER; }
+	|	TINYINT { $$ = ColumnDefinition::TINYINT; }
+	;
+
+column_vartype:
 		INT { $$ = ColumnDefinition::INT; }
-	|	INTEGER { $$ = ColumnDefinition::INT; }
-	|	DOUBLE { $$ = ColumnDefinition::DOUBLE; }
-	|	TEXT { $$ = ColumnDefinition::TEXT; }
+	|	VARCHAR { $$ = ColumnDefinition::VARCHAR; }
+	|	CHAR { $$ = ColumnDefinition::CHAR; }
+	;
+
+column_primary:
+		PRIMARY KEY { $$ = ColumnDefinition::PRIMARY; }
+	;
+
+opt_not_null:
+		NOT NULL { $$ = true; }
+	|	/* empty */ { $$ = false; }
 	;
 
 /******************************
@@ -362,6 +393,10 @@ column_type:
 drop_statement:
 		DROP TABLE table_name {
 			$$ = new DropStatement(DropStatement::kTable);
+			$$->name = $3;
+		}
+	|	DROP DATABASE database_name {
+			$$ = new DropStatement(DropStatement::kDatabase);
 			$$->name = $3;
 		}
 	|	DEALLOCATE PREPARE IDENTIFIER {
@@ -703,6 +738,8 @@ table_name:
 	|	IDENTIFIER '.' IDENTIFIER
 	;
 
+database_name:
+		IDENTIFIER;
 
 alias:	
 		AS IDENTIFIER { $$ = $2; }
@@ -770,6 +807,25 @@ ident_commalist:
 	|	ident_commalist ',' IDENTIFIER { $1->push_back($3); $$ = $1; }
 	;
 
+
+/******************************
+ * NEW
+ ******************************/
+
+show_statement:
+		SHOW TABLES {
+			$$ = new ShowStatement(ShowStatement::kTable);
+		}
+	|	SHOW DATABASES {
+			$$ = new ShowStatement(ShowStatement::kDatabase);
+		}
+	;
+
+desc_statement:
+		DESC table_name {
+			$$ = new DescStatement($2);
+		}
+	;
 %%
 /*********************************
  ** Section 4: Additional C code

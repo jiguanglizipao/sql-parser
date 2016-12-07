@@ -31,6 +31,8 @@ int main(int argc, char *argv[]) {
         return 0;
     } else {
         printf("Invalid SQL!\n");
+        printf("line: %d, column: %d\n", result->errorLine, result->errorColumn);
+        printf("%s\n", result->errorMsg);
         return -1;
     }
 }
