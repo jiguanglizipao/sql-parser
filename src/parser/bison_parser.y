@@ -115,6 +115,7 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 	hsql::DropStatement*   	drop_stmt;
 	hsql::ShowStatement*   	show_stmt;
 	hsql::DescStatement*   	desc_stmt;
+	hsql::UseStatement*   	use_stmt;
 	hsql::PrepareStatement* prep_stmt;
 	hsql::ExecuteStatement* exec_stmt;
 
@@ -161,7 +162,7 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 %token LOAD NULL PART PLAN SHOW TEXT TIME VIEW WITH ADD ALL
 %token AND ASC CSV FOR INT KEY NOT OFF SET TBL TOP AS BY IF
 %token IN IS OF ON OR TO
-%token DATABASE DATABASES CHAR VARCHAR TINYINT
+%token DATABASE DATABASES CHAR VARCHAR TINYINT USE
 
 
 /*********************************
@@ -180,6 +181,7 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 %type <drop_stmt>	drop_statement
 %type <show_stmt>	show_statement
 %type <desc_stmt>	desc_statement
+%type <use_stmt>	use_statement
 %type <sval> 		table_name opt_alias alias file_path database_name
 %type <bval> 		opt_not_exists opt_distinct opt_not_null
 %type <uval>		import_file_type opt_join_type column_type column_vartype column_primary
@@ -263,6 +265,7 @@ preparable_statement:
 	|	drop_statement { $$ = $1; }
 	|	show_statement { $$ = $1; }
 	|	desc_statement { $$ = $1; }
+	|	use_statement { $$ = $1; }
 	|	execute_statement { $$ = $1; }
 	;
 
@@ -826,6 +829,13 @@ desc_statement:
 			$$ = new DescStatement($2);
 		}
 	;
+
+use_statement:
+		USE DATABASE database_name {
+			$$ = new UseStatement($3);
+		}
+	;
+
 %%
 /*********************************
  ** Section 4: Additional C code

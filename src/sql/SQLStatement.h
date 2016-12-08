@@ -20,7 +20,8 @@ namespace hsql {
         kStmtRename,
         kStmtAlter,
         kStmtShow,
-        kStmtDesc
+        kStmtDesc,
+        kStmtUse
     } StatementType;
 
     /**
