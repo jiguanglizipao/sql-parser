@@ -41,7 +41,8 @@ namespace hsql {
         enum CreateType {
             kTable,
             kTableFromTbl, // Hyrise file format
-            kDatabase
+            kDatabase,
+            kIndex
         };
 
         CreateStatement(CreateType type) :
@@ -50,12 +51,14 @@ namespace hsql {
             ifNotExists(false),
             filePath(NULL),
             tableName(NULL),
+            indexName(NULL),
             columns(NULL) {};
 
         virtual ~CreateStatement() {
             delete columns;
             delete filePath;
             delete tableName;
+            delete indexName;
         }
 
         CreateType type;
@@ -63,6 +66,7 @@ namespace hsql {
         bool ifNotExists;
         const char* filePath;
         const char* tableName;
+        const char* indexName;
         std::vector<ColumnDefinition*>* columns;
     };
 

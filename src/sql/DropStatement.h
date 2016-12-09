@@ -21,14 +21,17 @@ namespace hsql {
         DropStatement(EntityType type) :
             SQLStatement(kStmtDrop),
             type(type),
-            name(NULL) {}
+            name(NULL),
+            index(NULL) {}
 
         virtual ~DropStatement() {
             delete name;
+            delete index;
         }
 
         EntityType type;
         const char* name;
+        const char* index;
     };
 
 } // namespace hsql

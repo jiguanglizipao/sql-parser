@@ -342,6 +342,12 @@ create_statement:
 			$$->ifNotExists = $3;
 			$$->tableName = $4;
 		}
+	|	CREATE INDEX opt_not_exists table_name '(' IDENTIFIER ')' {
+			$$ = new CreateStatement(CreateStatement::kIndex);
+			$$->ifNotExists = $3;
+			$$->tableName = $4;
+			$$->indexName = $6;
+		}
 	;
 
 opt_not_exists:
@@ -405,6 +411,11 @@ drop_statement:
 	|	DEALLOCATE PREPARE IDENTIFIER {
 			$$ = new DropStatement(DropStatement::kPreparedStatement);
 			$$->name = $3;
+		}
+	|	DROP INDEX table_name '(' IDENTIFIER ')' {
+			$$ = new DropStatement(DropStatement::kIndex);
+			$$->name = $3;
+			$$->index = $5;
 		}
 	;
 
