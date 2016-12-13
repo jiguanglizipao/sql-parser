@@ -175,9 +175,12 @@ namespace hsql {
         }
         switch (stmt->type) {
         case InsertStatement::kInsertValues:
-            inprint("Values", numIndent+1);
-            for (Expr* expr : *stmt->values) {
-                printExpression(expr, numIndent+2);
+            inprint("Values_Vector", numIndent+1);
+            for (std::vector<Expr*> *expr_vec : *stmt->values){
+                inprint("Values", numIndent+2);
+                for (Expr* expr : *expr_vec) {
+                    printExpression(expr, numIndent+3);
+                }
             }
             break;
         case InsertStatement::kInsertSelect:

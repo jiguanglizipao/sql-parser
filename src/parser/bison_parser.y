@@ -135,6 +135,7 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 	std::vector<hsql::ColumnDefinition*>* column_vec;
 	std::vector<hsql::UpdateClause*>* update_vec;
 	std::vector<hsql::Expr*>* expr_vec;
+	std::vector<std::vector<hsql::Expr*>*>* expr_vec_vec;
 }
 
 
@@ -199,6 +200,7 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 
 %type <str_vec>		ident_commalist opt_column_list
 %type <expr_vec> 	expr_list select_list literal_list
+%type <expr_vec_vec>literal_list_list
 %type <table_vec> 	table_ref_commalist
 %type <update_vec>	update_clause_commalist
 %type <column_vec>	column_def_commalist
@@ -445,11 +447,11 @@ truncate_statement:
  * INSERT INTO employees SELECT * FROM stundents
  ******************************/
 insert_statement:
-		INSERT INTO table_name opt_column_list VALUES '(' literal_list ')' {
+		INSERT INTO table_name opt_column_list VALUES literal_list_list {
 			$$ = new InsertStatement(InsertStatement::kInsertValues);
 			$$->tableName = $3;
 			$$->columns = $4;
-			$$->values = $7;
+			$$->values = $6;
 		}
 	|	INSERT INTO table_name opt_column_list select_no_paren {
 			$$ = new InsertStatement(InsertStatement::kInsertSelect);
@@ -603,6 +605,11 @@ expr_list:
 literal_list:
 		literal { $$ = new std::vector<Expr*>(); $$->push_back($1); }
 	|	literal_list ',' literal { $1->push_back($3); $$ = $1; }
+	;
+
+literal_list_list:
+		'(' literal_list ')' { $$ = new std::vector<std::vector<Expr*>*>(); $$->push_back($2); }
+	|	literal_list_list ',' '(' literal_list ')' { $1->push_back($4); $$ = $1; }
 	;
 
 expr_alias:

@@ -253,8 +253,9 @@ union HSQL_STYPE
 	std::vector<hsql::ColumnDefinition*>* column_vec;
 	std::vector<hsql::UpdateClause*>* update_vec;
 	std::vector<hsql::Expr*>* expr_vec;
+	std::vector<std::vector<hsql::Expr*>*>* expr_vec_vec;
 
-#line 258 "bison_parser.h" /* yacc.c:1909  */
+#line 259 "bison_parser.h" /* yacc.c:1909  */
 };
 # define HSQL_STYPE_IS_TRIVIAL 1
 # define HSQL_STYPE_IS_DECLARED 1
