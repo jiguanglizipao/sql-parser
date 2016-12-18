@@ -163,7 +163,7 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 %token LOAD NULL PART PLAN SHOW TEXT TIME VIEW WITH ADD ALL
 %token AND ASC CSV FOR INT KEY NOT OFF SET TBL TOP AS BY IF
 %token IN IS OF ON OR TO
-%token DATABASE DATABASES CHAR VARCHAR TINYINT USE
+%token DATABASE DATABASES CHAR VARCHAR TINYINT USE CHECK
 
 
 /*********************************
@@ -372,6 +372,9 @@ column_def:
     |   column_primary '(' IDENTIFIER ')' {
 			$$ = new ColumnDefinition($3, (ColumnDefinition::DataType) $1, false);
 		}
+	|   CHECK '(' expr ')' {
+	        $$ = new ColumnDefinition($3, ColumnDefinition::CHECK);
+	}
 	;
 
 
