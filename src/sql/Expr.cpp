@@ -63,6 +63,11 @@ namespace hsql {
         e->name = string;
         return e;
     }
+    
+    Expr* Expr::makeLiteral() {
+        Expr* e = new Expr(kExprLiteralNull);
+        return e;
+    }
 
 
     Expr* Expr::makeColumnRef(char* name) {

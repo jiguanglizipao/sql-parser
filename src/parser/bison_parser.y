@@ -188,8 +188,8 @@ int yyerror(YYLTYPE* llocp, SQLParserResult** result, yyscan_t scanner, const ch
 %type <uval>		import_file_type opt_join_type column_type column_vartype column_primary
 %type <table> 		from_clause table_ref table_ref_atomic table_ref_name
 %type <table>		join_clause join_table table_ref_name_no_alias
-%type <expr> 		expr scalar_expr unary_expr binary_expr function_expr star_expr expr_alias placeholder_expr
-%type <expr> 		column_name literal int_literal num_literal string_literal
+%type <expr> 		expr scalar_expr unary_expr binary_expr function_expr star_expr expr_alias placeholder_expr in_expr
+%type <expr> 		column_name literal int_literal num_literal string_literal null_literal
 %type <expr> 		comp_expr opt_where join_condition opt_having
 %type <order>		opt_order
 %type <limit>		opt_limit
@@ -575,7 +575,8 @@ opt_group:
 opt_having:
 		HAVING expr { $$ = $2; }
 	|	/* empty */ { $$ = NULL; }
-
+	;
+	
 opt_order:
 		ORDER BY expr opt_order_type { $$ = new OrderDescription($4, $3); }
 	|	/* empty */ { $$ = NULL; }
@@ -624,6 +625,7 @@ expr:
 	|	scalar_expr
 	|	unary_expr
 	|	binary_expr
+	|   in_expr
 	|	function_expr
 	;
 
@@ -651,10 +653,22 @@ binary_expr:
 	|	expr LIKE expr	{ $$ = Expr::makeOpBinary($1, Expr::LIKE, $3); }
 	|	expr NOT LIKE expr	{ $$ = Expr::makeOpBinary($1, Expr::NOT_LIKE, $4); }
 	;
+	
+in_expr:
+	IDENTIFIER IN '(' literal_list ')' {
+	    $$ = NULL; 
+	    for(auto it : *$4)
+	    {
+	        auto tmp = Expr::makeOpBinary(Expr::makeColumnRef($1), '=', it);
+	        $$ = $$?Expr::makeOpBinary($$, Expr::OR, tmp):tmp;
+	    }
+	}
+	;
 
 
 comp_expr:
 		expr '=' expr		{ $$ = Expr::makeOpBinary($1, '=', $3); }
+	|	expr IS expr		{ $$ = Expr::makeOpBinary($1, '=', $3); }
 	|	expr NOTEQUALS expr	{ $$ = Expr::makeOpBinary($1, Expr::NOT_EQUALS, $3); }
 	|	expr '<' expr		{ $$ = Expr::makeOpBinary($1, '<', $3); }
 	|	expr '>' expr		{ $$ = Expr::makeOpBinary($1, '>', $3); }
@@ -675,6 +689,7 @@ literal:
 		string_literal
 	|	num_literal
 	|	placeholder_expr
+	|	null_literal
 	;
 
 string_literal:
@@ -690,6 +705,10 @@ num_literal:
 int_literal:
 		INTVAL { $$ = Expr::makeLiteral($1); }
 	;
+	
+null_literal:
+	NULL { $$ = Expr::makeLiteral(); }
+;
 
 star_expr:
 		'*' { $$ = new Expr(kExprStar); }
